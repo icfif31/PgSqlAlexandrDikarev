@@ -143,6 +143,7 @@ data_directory = '/mnt/data/15/main'            # use data in another directory
 
 Запустил кластер:
 ```
+sudo service postgresql start
 sudo -u postgres pg_ctlcluster 15 main start
 ```
 
@@ -159,3 +160,40 @@ postgres=# select * from test;
  1
 (1 row)
  ```
+
+## Со *
+
+Создаем новый инстанс VM, устанавливаем на него Postgress, монтируем диск.
+Далее - нам нужно остановить postgres, создать директорию для монтирования.
+
+```
+sudo service postgresql stop
+sudo chown -R postgres:postgres /mnt/dataNew/
+```
+
+Затем поменять конфигурацию.
+
+```
+sudo nano /etc/postgresql/15/main/postgresql.conf
+
+data_directory = '/mnt/dataNew/15/main'
+```
+
+Осталось только запустить сервер.
+```
+sudo service postgresql start
+sudo -u postgres pg_ctlcluster 15 main start
+```
+
+И проверить.
+```
+sudo -u postgres psql
+psql (17.4 (Ubuntu 17.4-1.pgdg24.04+2), server 15.12 (Ubuntu 15.12-1.pgdg24.04+1))
+Type "help" for help.
+
+postgres=# select * from test;
+ c1
+----
+ 1
+(1 row)
+```

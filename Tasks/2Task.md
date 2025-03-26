@@ -108,10 +108,11 @@
 15.  Проверяем что контейнер запущен:
     ```
     sudo docker container ls
+    
     CONTAINER ID   IMAGE      COMMAND                  CREATED          STATUS          PORTS                                       NAMES
     54e477051d98   postgres   "docker-entrypoint.s…"   31 seconds ago   Up 30 seconds   0.0.0.0:5432->5432/tcp, :::5432->5432/tcp   postgres
     ```
-    Как видмс id контейнера изменился.
+    Как видим id контейнера изменился.
 16. Подключаемся к контейнеру и делаем запрос:
     ```
     postgres=# select * from persons;
