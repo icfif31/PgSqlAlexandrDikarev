@@ -197,3 +197,5 @@ postgres=# select * from test;
  1
 (1 row)
 ```
+
+Все данные на месте.
