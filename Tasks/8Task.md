@@ -105,3 +105,57 @@ postgres=# SELECT * FROM pg_locks pl LEFT JOIN pg_stat_activity psa ON pl.pid = 
 * RowExclusiveLock - стандартная блокировка при обновлении.
 * ExclusiveLock - блокировка в рамках транзакции.
 * ShareLock - ожидание доступности записи.
+
+
+7. Взаимоблокировки - для воспроизведения данной ситуации нам в первую очередь нужно создать и заполнить  тестовую таблицу данными - таблица должна содержать ID и какие-либо другие данные, например так.
+```
+postgres=# select * from Test2;
+ id | test
+----+-------
+  1 | test1
+  2 | test2
+  3 | test3
+(3 rows)
+```
+8. Откроем три сессии.
+	1. В первой сессии - поменяем значение Test1 (1).
+	```
+	postgres=# begin;
+	BEGIN
+	postgres=*# update Test2 set test = 'TestS1' where Id=1;
+	UPDATE 1
+	```
+	2. Во второй  Test2 (2).
+	```
+	postgres=# begin;
+	BEGIN
+	postgres=*# update Test2 set test = 'TestS2' where Id=2;
+	UPDATE 1
+	```
+	3. Во второй  Test2 (3).
+	```
+	postgres=# begin;
+	BEGIN
+	postgres=*# update Test2 set test = 'TestS3' where Id=3;
+	UPDATE 1
+	```
+9. Создадим взаимную блокировку.
+	1. В первой сессии - обновим значение 2 (заблокированное другой транзакцией) - по результатам ожидаемо зависнем в ожиании.
+	```
+	UPDATE Test2 SET test = test || 'S1' WHERE id = 2;
+	```
+	2. Во второй сессии сделаем то-же самое, но с записью 3.
+	```
+	UPDATE Test2 SET test = test || 'S2' WHERE id = 3;
+	```
+	3. В третьей сделаем тоже самое, но с записью 1.
+	```
+	UPDATE Test2 SET test = test || 'S3' WHERE id = 1;
+	ERROR:  deadlock detected
+	DETAIL:  Process 1796 waits for ShareLock on transaction 764; blocked by process 1942.
+	Process 1942 waits for ShareLock on transaction 765; blocked by process 1741.
+	Process 1741 waits for ShareLock on transaction 766; blocked by process 1796.
+	HINT:  See server log for query details.
+	CONTEXT:  while updating tuple (0,1) in relation "test2"
+	```
+     В третьей сессии мы получаем взаимную блокировку - прошще говоря Deadlock - PostgreeSQL - убил третью сессию, чтобы разрешить конфликт и разрешить другим сессиям создать блокировку.
