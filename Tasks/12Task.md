@@ -26,6 +26,7 @@ SELECT
 FROM generate_series(1, 100);
 ```
 **COPY**
+
 5. Сделаем логический бекап в формат CSV.
 ```
 backup_demo=# COPY table1
@@ -64,6 +65,7 @@ COPY 100
 Как видно - данные были успешно перенесены в новую таблицу.
 
 **pg_dump**
+
 8. Теперь сделаем дамп через pg_dump - для этого в терминале выполним команду.
 ```
 pg_dump -Fc -d backup_demo -t 'table1' -t 'table2' -U postgres -Fc -f /tmp/backup_demo.gz
